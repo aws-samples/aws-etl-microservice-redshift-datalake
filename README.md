@@ -107,6 +107,8 @@ Job invocation is done through CLoudwatch Events rule. The rule's target is set 
 ```
 {   "PrefixedTablename": "demo_master.orders",   "SnapshotYN": "y",   "FileFormat": "parquet",   "WriteMode": "overwrite",   "s3FilePath": "s3://tpcdhawspsa/sampledatalake/",   "JdbcUrl": "jdbc:redshift://aod-lab-redshiftcluster-corqdpn6wh03.ckh0do3morgd.us-east-1.redshift.amazonaws.com:8192/awspsars?user=rsadmin&password=Welcome123",   "GlueRSConnection": "tpc-rs",   "RedshiftRoleArn": "arn:aws:iam::413094830157:role/rsLabGroupPolicy-SpectrumRole",   "DayPartitionKey": "o_orderdate",   "DayPartitionValue": "1998-07-21" }
 ```
+![lambda-invocation-cw-rule](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/lambda-invocation-cw-rule.png)
+
 If you do not enter the DayPartitionValue then the current date will be considered as the DayPartitionValue.
 
 To monitor the individual table unload I have used cloudwatch events to log both Success and Failure of each job. The AWS Lambda keeps in the namespace "Lambda-ETL" and AWS Glue is under "Glue-ETL".
