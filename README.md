@@ -22,6 +22,8 @@ The Lambda function accepts necessary parameters to identify which table to unlo
 
 Any subsequent invocation of the lambda function with the same tablename as its input parameter will instantiate a new job run id. This way you can browse the AWS Glue job by entering the schemamame.tablename format in the AWS Glue > Jobs page. Just keep in mind the number of jobs created by the Lambda function will be counted towards the AWS Glue Limits which is 25 jobs per AWS account. This is a soft limit and you can request a limit increase by contacting the AWS Support.
 
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=&templateURL=https://s3.amazonaws.com/awspsa-redshift-lab/cfn-templates-redshift-lab/ETL_MicroService_LambdaGlue.json)
+
 ## Lambda function
 
 I’ve used AWS Glue Jobs API to create job and submit job. To manage the job submission I have created a Lambda function which is the mircroservice to unload my table's data from Redshift into S3. The Start_Job_Run API used in this Lambda function is an asynchronous API which means Lambda function will not time out during the execution time of the AWS Glue job.
