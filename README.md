@@ -168,3 +168,10 @@ You can use those metrics to build some dashboard for monitoring your jobs proce
 ![cwalarm-metrics](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/cwalarm-metrics.png)
 
 ![cwalarm-dashboard](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/cwalarm-dashboard.png)
+
+
+## Conclusion
+As you schedule the lambda function for any of your tables data unload into s3, it will start putting your Redshift data into s3 in partition_key = partition_value folder as below.
+
+![datalake-s3-folder](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/datalake-s3-folder.png)
+
