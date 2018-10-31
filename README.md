@@ -101,7 +101,7 @@ try:
 ```
 The key here is the databricks driver for Redshift to connect to the Redshift cluster using JDBC and execute the push down predicate for filering the table's data on the partition key.
 
-## Invocation
+## AWS Lambda Invocation
 
 Job invocation is done through CLoudwatch Events rule. The rule's target is set as the AWS lambda function with the input parameters passed as JSON input text, a sample is given below
 ```
@@ -110,3 +110,50 @@ Job invocation is done through CLoudwatch Events rule. The rule's target is set 
 If you do not enter the DayPartitionValue then the current date will be considered as the DayPartitionValue.
 
 To monitor the individual table unload I have used cloudwatch events to log both Success and Failure of each job. The AWS Lambda keeps in the namespace "Lambda-ETL" and AWS Glue is under "Glue-ETL".
+
+## VPC configuration
+
+Now let's talk about the VPC and IAM configuration necessary to execute this ETL microservice. I will discuss the EC2 resources launched by Lambda is created in a private Subnet within my VPC. It is reccommended to create 2 subnets in different AZ for redundancy.
+The private subnets are attached to a routing table that has an outbound traffic target to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html). For connectivity to s3 I have created an s3 endpoint in my VPC. This endpoint will also show up in the routing table.
+
+
+
+Since AWS Lambda and AWS Glue will reach out to the Redshift cluster we  need the Elastic IP Address of the NAT gateway which is needed to create the security group. This security group will be attached to the Redshift cluster.
+
+The security group *nat-sg-redshift* has one entry in its inbound rule -
+
+
+
+
+## IAM Roles
+The IAM roles will let AWS Lambda and AWS Glue access other AWS services needed for the this ETL microservice. These services are S3, Cloudwatch, AWS Glue and VPC. Two IAM roles will get created through the cloudformation template- one with "LambdaExecutionRole" and the other with "AWSGlueServiceRoleDefault" in the name.
+
+Once the roles are created you will need to modify the "%AWSGlueServiceRoleDefault%" role to attach the below inline policy because the AWSGlueServiceRole managed policy does not have iam:passrole action to resource AWSGLueService. 
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": "arn:aws:iam::413094830157:role/AWSGlueService*"
+        }
+    ]
+}
+
+```
+
+## AWS Glue Data Connection
+The AWS Glue job makes jdbc call to the Redshift cluster which requires a AWS Glue Database Connection. To setup a database connection called you need to go to the AWS Glue console and navigate to Databases > Connections then click on "Add connection".
+
+Following considerations are necessary for the data connection
+
+* Subnet: Select the private subnet with the NAT gateway attached to it. 
+* Security groups: Check security group that has an entry of the the NAT gateway elastic IP. 
+
+## Cloudwatch dashboard
+The AWS Lambda and AWS Glue jobs will create two notifications- success and failure, each under Lambda-ETL and Glue-ETL namespace.
+You can use those metrics to build some dashboard for monitoring your jobs processes.
