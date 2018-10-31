@@ -116,14 +116,15 @@ To monitor the individual table unload I have used cloudwatch events to log both
 Now let's talk about the VPC and IAM configuration necessary to execute this ETL microservice. I will discuss the EC2 resources launched by Lambda is created in a private Subnet within my VPC. It is reccommended to create 2 subnets in different AZ for redundancy.
 The private subnets are attached to a routing table that has an outbound traffic target to a [NAT gateway](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html). For connectivity to s3 I have created an s3 endpoint in my VPC. This endpoint will also show up in the routing table.
 
-
+![vpc-configuarion-natgateway](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/vpc-configuarion-natgateway.png)
 
 Since AWS Lambda and AWS Glue will reach out to the Redshift cluster we  need the Elastic IP Address of the NAT gateway which is needed to create the security group. This security group will be attached to the Redshift cluster.
 
+![vpc-configuarion-natgateway-elasticIP](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/vpc-configuarion-natgateway-elasticIP.png)
+
 The security group *nat-sg-redshift* has one entry in its inbound rule -
 
-
-
+![vpc-configuarion-natgateway-securitygroup](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/vpc-configuarion-natgateway-securitygroup.png)
 
 ## IAM Roles
 The IAM roles will let AWS Lambda and AWS Glue access other AWS services needed for the this ETL microservice. These services are S3, Cloudwatch, AWS Glue and VPC. Two IAM roles will get created through the cloudformation template- one with "LambdaExecutionRole" and the other with "AWSGlueServiceRoleDefault" in the name.
@@ -149,11 +150,19 @@ Once the roles are created you will need to modify the "%AWSGlueServiceRoleDefau
 ## AWS Glue Data Connection
 The AWS Glue job makes jdbc call to the Redshift cluster which requires a AWS Glue Database Connection. To setup a database connection called you need to go to the AWS Glue console and navigate to Databases > Connections then click on "Add connection".
 
+![glue-dataconnection-jdbc](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/glue-dataconnection-jdbc.png)
+
 Following considerations are necessary for the data connection
 
 * Subnet: Select the private subnet with the NAT gateway attached to it. 
 * Security groups: Check security group that has an entry of the the NAT gateway elastic IP. 
 
+![glue-dataconnection-subnet-secgroup](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/glue-dataconnection-subnet-secgroup.png)
+
 ## Cloudwatch dashboard
 The AWS Lambda and AWS Glue jobs will create two notifications- success and failure, each under Lambda-ETL and Glue-ETL namespace.
 You can use those metrics to build some dashboard for monitoring your jobs processes.
+
+![cwalarm-metrics](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/cwalarm-metrics.png)
+
+![cwalarm-dashboard](https://github.com/aws-samples/aws-etl-microservice-redshift-datalake/blob/master/cwalarm-dashboard.png)
